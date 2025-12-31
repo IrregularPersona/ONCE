@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Tools } from '../constants';
 
 const Canvas = ({
@@ -17,6 +17,8 @@ const Canvas = ({
     setStartPos
 }) => {
     const canvasRef = useRef(null);
+    const [writing, setWriting] = useState(null);
+    const [textValue, setTextValue] = useState('');
 
     useEffect(() => {
         const resizeCanvas = () => {
@@ -68,6 +70,13 @@ const Canvas = ({
         setStartPos({ x, y });
 
         if (tool === Tools.PAN) return;
+
+        if (tool === Tools.TEXT) {
+            setWriting({ x: e.clientX, y: e.clientY, worldX: x, worldY: y });
+            setTextValue('');
+            setIsDrawing(false);
+            return;
+        }
 
         let newElement = {
             type: tool,
@@ -182,6 +191,10 @@ const Canvas = ({
                 const radius = Math.sqrt(Math.pow(ex - cx, 2) + Math.pow(ey - cy, 2));
                 ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                 ctx.stroke();
+            } else if (el.type === Tools.TEXT) {
+                ctx.font = `${20}px Inter`;
+                ctx.fillStyle = el.color || '#ffffff';
+                ctx.fillText(el.text, el.startX, el.startY);
             }
         });
 
@@ -192,15 +205,62 @@ const Canvas = ({
         render();
     }, [elements, camera, currentElement, zoom]);
 
+    const handleTextSubmit = () => {
+        if (textValue.trim()) {
+            setElements(prev => [...prev, {
+                type: Tools.TEXT,
+                startX: writing.worldX,
+                startY: writing.worldY,
+                text: textValue,
+                color: '#ffffff'
+            }]);
+        }
+        setWriting(null);
+        setTextValue('');
+    };
+
     return (
-        <canvas
-            ref={canvasRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
-        />
+        <>
+            <canvas
+                ref={canvasRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
+            />
+            {writing && (
+                <textarea
+                    autoFocus
+                    className="text-input"
+                    style={{
+                        position: 'absolute',
+                        left: writing.x,
+                        top: writing.y,
+                        font: `${20 * zoom}px Inter`,
+                        color: '#ffffff',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        resize: 'none',
+                        padding: 0,
+                        margin: 0,
+                        overflow: 'hidden',
+                        whiteSpace: 'pre',
+                        zIndex: 1000,
+                    }}
+                    value={textValue}
+                    onChange={(e) => setTextValue(e.target.value)}
+                    onBlur={handleTextSubmit}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleTextSubmit();
+                        }
+                    }}
+                />
+            )}
+        </>
     );
 };
 

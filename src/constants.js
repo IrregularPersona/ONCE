@@ -4,4 +4,5 @@ export const Tools = {
     ANCHOR_LINE: 'anchor_line',
     RECT: 'rect',
     CIRCLE: 'circle',
+    TEXT: 'text',
 };

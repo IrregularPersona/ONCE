@@ -17,12 +17,32 @@ function App() {
     setElements([]);
   };
 
+  const undo = () => {
+    setElements((prev) => prev.slice(0, -1));
+  };
+
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className="canvas-container">
       <Toolbar
         tool={tool}
         setTool={setTool}
         onClear={clearCanvas}
+        onUndo={undo}
+        canUndo={elements.length > 0}
       />
 
       <Canvas

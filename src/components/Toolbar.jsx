@@ -1,8 +1,7 @@
-import React from 'react';
-import { Move, PenLine, Anchor, Square, Circle, Trash2 } from 'lucide-react';
+import { Move, PenLine, Anchor, Square, Circle, Type, Trash2, Undo2 } from 'lucide-react';
 import { Tools } from '../constants';
 
-const Toolbar = ({ tool, setTool, onClear }) => {
+const Toolbar = ({ tool, setTool, onClear, onUndo, canUndo }) => {
     return (
         <div className="toolbar">
             <button
@@ -40,7 +39,23 @@ const Toolbar = ({ tool, setTool, onClear }) => {
             >
                 <Circle size={20} />
             </button>
+            <button
+                className={`tool-button ${tool === Tools.TEXT ? 'active' : ''}`}
+                onClick={() => setTool(Tools.TEXT)}
+                title="Text"
+            >
+                <Type size={20} />
+            </button>
             <div style={{ height: '1px', background: 'var(--border-color)', margin: '0.25rem 0' }} />
+            <button
+                className="tool-button"
+                onClick={onUndo}
+                title="Undo (Ctrl+Z)"
+                disabled={!canUndo}
+                style={{ opacity: canUndo ? 0.7 : 0.2, cursor: canUndo ? 'pointer' : 'default' }}
+            >
+                <Undo2 size={20} />
+            </button>
             <button
                 className="tool-button"
                 onClick={onClear}
